@@ -8,13 +8,13 @@ def plot_city_detectors(city: str, dark=False):
     # if city not in cities:
     #     raise ValueError(f"{city} is not in the dataset")
 
-    utd_city = utd.filter_city(city)
+    utd_city = utd.get_city_dfs(city)
     df_traff = utd_city.traffic_df
     df_detec = utd_city.detector_df
 
     df_traff = df_traff.groupby('detid')[['flow']].mean().reset_index()
     df = df_traff.merge(df_detec, on='detid', how='outer')
-    df = df.dropna()
+    df = df.dropna(subset=['lat', 'long', 'flow'])
 
     mapbox_stype = "carto-darkmatter" if dark else "carto-positron"
     city_data = cities_d[city]
@@ -27,4 +27,4 @@ def plot_city_detectors(city: str, dark=False):
     fig.show()
 
 if __name__ == "__main__":
-    plot_city_detectors('paris')
+    plot_city_detectors('hamburg')
