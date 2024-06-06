@@ -1,21 +1,53 @@
 # Milestone 2
 
 ## Data
-The data can be downloaded from the links below:
+We will store all project data and config files in a directory named Data, my directory is set up as follows:
+
+    -- /path/to/Milestone2
+        -- Data
+        -- Scripts
+
+navigate to `/path/to/Milestone2` then run `mkdir Data` then `cd Data`. Then you can download the data to that directory
+using the following commands:
+
 ```
 curl https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/437802/utd19_u.csv -o traffic.csv
 curl https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/437802/detectors_public.csv -o detectors.csv
 curl https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/437802/links.csv -o links.csv
 ```
-### traffic
+You should now see:
+    
+    --/path/to/Mileston2
+        -- Data
+            -- detectors.csv
+            -- links.csv
+            -- traffic.csv
+        -- Scripts
 
-| Column   | Description                                               |
-|----------|-----------------------------------------------------------|
-| day      | day in format YYYY-MM-DD (%Y-%m-%d)                       |
-| interval | Beginning of recording interval in seconds from midnight. |
-| detid    | detector id                                               |
-| flow     | Flow in vehicles per hour for that detector.              |
-|          |                                                           |
-|          |                                                           |
-|          |                                                           |
-|          |                                                           |
+You might notice that the traffic.csv is very large.
+Because we will be mostly dealing with data from one city at a time, we can pre-filter the dataset and store one dataset per 
+city. This will add a small bit of overhead to our system, but in return we can access and process data from a given city
+much much faster. Asssuming you followed the above instructions and named your csvs: "traffic.csv", "detectors.csv", 
+and "links.csv" and put all your datasets in one directory, you can follow the next instructions to digest the data into
+city chunks:
+
+```
+cd ..
+python -m Scripts.split_df_by_city Data
+```
+
+If you didn't name your csv's according to the above or want to see more documentation about the function you can run
+```
+python -m Scripts.split_df_by_city -h
+```
+
+After running the above, you should see a new directory called UTD:
+
+    -- path/to/Milestone2
+        -- Data
+            --UTD
+            -- ...
+        -- Scripts
+
+in UTD you will see a directory for each city in the dataset, if you expand a city you will see 
+detector.csv, link.csv, and traffic.csv for each city.
