@@ -1,19 +1,28 @@
 # Milestone 2
 
 ## Data
+The data can be downloaded and setup in two ways:
+1. If you are in a unix like operating system and want an automatic setup:
+   navigate to the root of the repo and run `make`
+2. If you are in windows or want to manually configure:
+    - You can follow the below guide
+    - you can download make and then run `make`
+
+If you are following the manual config please follow the below steps:
+
 We will store all project data and config files in a directory named Data, my directory is set up as follows:
 
-    -- /path/to/Milestone2
-        -- Data
-        -- Scripts
+       -- /path/to/Milestone2
+           -- Data
+           -- Scripts
 
-navigate to `/path/to/Milestone2` then run `mkdir Data` then `cd Data`. Then you can download the data to that directory
+navigate to `/path/to/Milestone2` then run `mkdir Data` then you can download the data to that directory
 using the following commands:
 
 ```
-curl https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/437802/utd19_u.csv -o traffic.csv
-curl https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/437802/detectors_public.csv -o detectors.csv
-curl https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/437802/links.csv -o links.csv
+curl https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/437802/utd19_u.csv -o Data/traffic.csv
+curl https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/437802/detectors_public.csv -o Data/detectors.csv
+curl https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/437802/links.csv -o Data/links.csv
 ```
 You should now see:
     
@@ -51,3 +60,9 @@ After running the above, you should see a new directory called UTD:
 
 in UTD you will see a directory for each city in the dataset, if you expand a city you will see 
 detector.csv, link.csv, and traffic.csv for each city.
+
+Last we need to setup the config file and add some metadata to each city in the UTD
+```
+python -m Scripts.setup_config Data/UTD
+python -m Scripts.Data.get_city_geo_coords Data/UTD
+```
