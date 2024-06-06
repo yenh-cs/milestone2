@@ -1,13 +1,9 @@
 import plotly.express as px
 import pandas as pd
 
-from Scripts.constants import utd, cities_d
+from Scripts.constants import utd
 
 def plot_city_detectors(city: str, dark=False):
-    # cities = set(utd.keys())
-    # if city not in cities:
-    #     raise ValueError(f"{city} is not in the dataset")
-
     utd_city = utd.get_city_dfs(city)
     df_traff = utd_city.traffic_df
     df_detec = utd_city.detector_df

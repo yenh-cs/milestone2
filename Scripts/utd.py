@@ -4,7 +4,6 @@ This module contains the code for the UTD data structure.
 UTD contat
 """
 import os
-import h5py
 import pandas as pd
 from collections import namedtuple
 
@@ -23,24 +22,3 @@ class UTD:
         df_detector = pd.read_csv(os.path.join(city_root, self.detector_filename))
         df_link = pd.read_csv(os.path.join(city_root, self.link_filename))
         return self.utd_tuple(df_traffic, df_detector, df_link)
-
-    def filter_city(self, city):
-        # city_chunks = []
-        # for chunk in self.traffic_df:
-        #     city_chunk = chunk.loc[chunk['city'] == city]
-        #     city_chunks.append(city_chunk)
-        #
-        # if len(city_chunks) == 0:
-        #     traffic_df = pd.DataFrame()
-        # else:
-        #     traffic_df = pd.concat(city_chunks)
-
-        traffic_df = self.traffic_df.loc[self.traffic_df['city'] == city]
-
-        detector_df = self.detector_df
-        detector_df = detector_df.loc[detector_df['citycode'] == city]
-
-        link_df = self.link_df
-        link_df = link_df.loc[link_df['citycode'] == city]
-
-        return self.utd_tuple(traffic_df, detector_df, link_df)

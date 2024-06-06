@@ -1,4 +1,7 @@
 import os
+import warnings
+warnings.filterwarnings('ignore')
+
 import pandas as pd
 from tqdm import tqdm
 
