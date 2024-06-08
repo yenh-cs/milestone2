@@ -29,11 +29,25 @@ class UTD:
     def _get_city_dir(self, city: str):
         return os.path.join(self.root_dir, city)
 
-    def get_city_dfs(self, city: str):
+    def get_city_dfs(self, city: str, traffic_flag=True, detector_flag=True, link_flag=True):
+        """
+
+        Args:
+            city: city to query
+            traffic_flag: whether to return df_traffic, default True
+            detector_flag: whether to return df_detector, default True
+            link_flag: whether to return df_link, default True
+
+        Returns:
+
+        """
         city_root = self._get_city_dir(city)
-        df_traffic = pd.read_csv(os.path.join(city_root, self.traffic_filename))
-        df_detector = pd.read_csv(os.path.join(city_root, self.detector_filename))
-        df_link = pd.read_csv(os.path.join(city_root, self.link_filename))
+        def get_df(path, flag):
+            return pd.read_csv(path) if flag else None
+
+        df_traffic = get_df(os.path.join(city_root, self.traffic_filename), traffic_flag)
+        df_detector = get_df(os.path.join(city_root, self.detector_filename), detector_flag)
+        df_link = get_df(os.path.join(city_root, self.link_filename), link_flag)
         return self.utd_tuple(df_traffic, df_detector, df_link)
 
     def get_city_metadata(self, city: str):
