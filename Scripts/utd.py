@@ -16,6 +16,15 @@ class UTD:
 
     def __init__(self, root_dir: str):
         self.root_dir = root_dir
+        self._cities = None
+
+    @property
+    def cities(self):
+        if self._cities is None:
+            cities = os.listdir(self.root_dir)
+            # rm hidden folders
+            self._cities = [city for city in cities if city[0] != "."]
+        return self._cities
 
     def _get_city_dir(self, city: str):
         return os.path.join(self.root_dir, city)
