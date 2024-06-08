@@ -10,17 +10,17 @@ def setup_utd(utd_data_path: str):
     Returns:
         None, saves a config file
     """
+    utd_p = os.path.abspath(utd_data_path)
+
     config = ConfigParser()
     config['UTD'] = {
-        "path": os.path.abspath(utd_data_path)
+        "path": utd_p
     }
-
-    file_p = os.path.abspath(__file__)
+    file_dir = os.path.abspath(os.path.join(__file__, "../.."))
     save_p = os.path.join(
-        os.path.dirname(file_p),
-        'config.ini'
+        file_dir,
+        '.config.ini'
     )
-
     with open(save_p, 'w') as f:
         config.write(f)
 

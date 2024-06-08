@@ -13,14 +13,14 @@ def plot_city_detectors(city: str, dark=False):
     df = df.dropna(subset=['lat', 'long', 'flow'])
 
     mapbox_stype = "carto-darkmatter" if dark else "carto-positron"
-    city_data = cities_d[city]
+    city_data = utd.get_city_metadata(city)
     lat, lon = city_data['latitude'], city_data['longitude']
 
     fig = px.scatter_mapbox(
-        df, lat='lat', lon='long', mapbox_style=mapbox_stype, color='flow', size='flow', zoom=13,
+        df, lat='lat', lon='long', mapbox_style=mapbox_stype, color='flow', size='flow', zoom=12,
         center={'lat': lat, 'lon': lon}
     )
     fig.show()
 
 if __name__ == "__main__":
-    plot_city_detectors('hamburg')
+    plot_city_detectors('london')
