@@ -18,12 +18,12 @@ def plot_city_detectors(city: str, dark=False):
     df = df_traff.merge(df_detec, on='detid', how='outer')
     df = df.dropna(subset=['lat', 'long', 'flow'])
 
-    mapbox_stype = "carto-darkmatter" if dark else "carto-positron"
+    mapbox_style = "carto-darkmatter" if dark else "carto-positron"
     city_data = utd.get_city_metadata(city)
     lat, lon = city_data['latitude'], city_data['longitude']
 
     fig = px.scatter_mapbox(
-        df, lat='lat', lon='long', mapbox_style=mapbox_stype, color='flow', size='flow', zoom=12,
+        df, lat='lat', lon='long', mapbox_style=mapbox_style, color='flow', size='flow', zoom=12,
         center={'lat': lat, 'lon': lon}
     )
     return fig
