@@ -8,6 +8,23 @@ import os
 import pandas as pd
 from collections import namedtuple
 
+class UTDIterator:
+    def __init__(self, utd, traffic_flag, detector_flag, link_flag):
+        self._utd = utd
+        self._traffic_flag = traffic_flag
+        self._detector_flag = detector_flag
+        self._link_flag = link_flag
+
+    def __next__(self):
+        for city in self._utd.cities:
+            return self._utd.get_city_dfs(
+                city,
+                traffic_flag=self._traffic_flag,
+                detector_flag=self._detector_flag,
+                link_flag=self._link_flag
+            )
+
+
 class UTD:
     utd_tuple = namedtuple("TrafficData", ["traffic_df", "detector_df", "link_df"])
     traffic_filename = "traffic.csv"
@@ -60,3 +77,6 @@ class UTD:
                 metadata = json.load(f)
 
         return metadata
+
+    def get_iterator(self, traffic_flag=True, detector_flag=True, link_flag=True):
+        return UTDIterator(self, traffic_flag, detector_flag, link_flag)

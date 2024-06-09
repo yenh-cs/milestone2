@@ -11,6 +11,8 @@ def setup_utd(utd_data_path: str):
         None, saves a config file
     """
     utd_p = os.path.abspath(utd_data_path)
+    data_dir = os.path.dirname(utd_p)
+    os.makedirs(os.path.join(data_dir, '.cache'), exist_ok=True)
 
     config = ConfigParser()
     config['UTD'] = {

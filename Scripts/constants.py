@@ -21,10 +21,13 @@ def _get_config(root):
         )
     else:
         config = ConfigParser()
-        config.read('/Users/joshfisher/PycharmProjects/Milestone2/.config.ini')
-        utd_p = config['UTD']['path']
-        utd = UTD(utd_p)
-        return utd
+        config.read(os.path.join(root, ".config.ini"))
+        return config
+        # utd = UTD(utd_p)
+        # return utd
 
 root = os.path.abspath(os.path.join(__file__, "../.."))
-utd = _get_config(root)
+_config = _get_config(root)
+_utd_p = _config['UTD']['path']
+data_dir = os.path.dirname(_utd_p)
+utd = UTD(_utd_p)

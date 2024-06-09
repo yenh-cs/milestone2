@@ -1,10 +1,16 @@
+import matplotlib.pyplot as plt
 import plotly.express as px
-import pandas as pd
+import seaborn as sns
+import numpy as np
+from tqdm import tqdm
 
 from Scripts.constants import utd
+from Scripts.cache_viz import cache_plot
 
+@cache_plot
 def plot_city_detectors(city: str, dark=False):
-    utd_city = utd.get_city_dfs(city)
+    assert city in utd.cities, f"{city} not in UTD"
+    utd_city = utd.get_city_dfs(city, link_flag=False)
     df_traff = utd_city.traffic_df
     df_detec = utd_city.detector_df
 
@@ -20,7 +26,32 @@ def plot_city_detectors(city: str, dark=False):
         df, lat='lat', lon='long', mapbox_style=mapbox_stype, color='flow', size='flow', zoom=12,
         center={'lat': lat, 'lon': lon}
     )
-    fig.show()
+    return fig
+
+@cache_plot
+def plot_flow_distibutions(n_cols=3):
+    cities = utd.cities
+    n_cities = len(cities)
+    n_rows = n_cities // n_cols + n_cities % n_cols
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(12, 12), sharex=True)
+
+    for i, city in enumerate(tqdm(cities)):
+        row_idx = i // n_cols
+        col_idx = i % n_cols
+        ax = axes[row_idx, col_idx]
+        ax.title.set_text(city)
+
+        utd_city = utd.get_city_dfs(city, True, False, False)
+        traffic_df = utd_city.traffic_df
+
+        sns.histplot(traffic_df, x='flow', ax=ax, log_scale=True)
+
+    plt.tight_layout()
+    return fig
+
 
 if __name__ == "__main__":
-    plot_city_detectors('london')
+    # res = plot_flow_distibutions(n_cols=4)
+    # plt.show()
+    fig = plot_city_detectors('london', dark=False)
+    fig.show()
