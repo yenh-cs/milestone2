@@ -1,5 +1,13 @@
 # Milestone 2
 
+## Installation
+1. Make sure you have python 3.11 installed.
+2. Have miniconda installed and configured https://docs.anaconda.com/free/miniconda/miniconda-install/
+3. Run command below to install libraries required for this project
+```
+pip3 install -r requirements.txt
+```
+
 ## Data
 The data can be downloaded and setup in two ways:
 1. If you are in a unix like operating system and want an automatic setup:
@@ -12,11 +20,11 @@ If you are following the manual config please follow the below steps:
 
 We will store all project data and config files in a directory named Data, my directory is set up as follows:
 
-       -- /path/to/Milestone2
+       -- /path/to/milestone2
            -- Data
            -- Scripts
 
-navigate to `/path/to/Milestone2` then run `mkdir Data` then you can download the data to that directory
+navigate to `/path/to/milestone2` then run `mkdir Data` then you can download the data to that directory
 using the following commands:
 
 ```
@@ -26,7 +34,7 @@ curl https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/43780
 ```
 You should now see:
     
-    --/path/to/Mileston2
+    --/path/to/milestone2
         -- Data
             -- detectors.csv
             -- links.csv
@@ -41,18 +49,17 @@ and "links.csv" and put all your datasets in one directory, you can follow the n
 city chunks:
 
 ```
-cd ..
-python -m Scripts.split_df_by_city Data
+python -m Scripts.Data.split_df_by_city Data
 ```
 
 If you didn't name your csv's according to the above or want to see more documentation about the function you can run
 ```
-python -m Scripts.split_df_by_city -h
+python -m Scripts.Data.split_df_by_city -h
 ```
 
 After running the above, you should see a new directory called UTD:
 
-    -- path/to/Milestone2
+    -- path/to/milestone2
         -- Data
             --UTD
             -- ...
