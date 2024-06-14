@@ -63,6 +63,8 @@ class UTD:
             return pd.read_csv(path) if flag else None
 
         df_traffic = get_df(os.path.join(city_root, self.traffic_filename), traffic_flag)
+        if traffic_flag:
+            df_traffic['day'] = pd.to_datetime(df_traffic['day'], format="%Y-%m-%d")
         df_detector = get_df(os.path.join(city_root, self.detector_filename), detector_flag)
         df_link = get_df(os.path.join(city_root, self.link_filename), link_flag)
         return self.utd_tuple(df_traffic, df_detector, df_link)
