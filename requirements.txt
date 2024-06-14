@@ -1,8 +1,8 @@
-pandas
-matplotlib
-plotly
-seaborn
-numpy
-tqdm
-geopy
-configparser
+geopy==2.4.1
+matplotlib==3.9.0
+numpy==1.26.4
+pandas==2.2.2
+plotly==5.22.0
+scikit_learn==1.5.0
+seaborn==0.13.2
+tqdm==4.66.4
