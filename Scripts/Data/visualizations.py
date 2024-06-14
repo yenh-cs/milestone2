@@ -9,7 +9,7 @@ from Scripts.constants import utd
 from Scripts.cache_viz import cache_plot
 
 @cache_plot
-def plot_city_detectors(city: str, dark=False, links=False):
+def plot_city_detectors(city: str, dark=False, links=False, overwrite=False):
     assert city in utd.cities, f"{city} not in UTD"
     if links:
         utd_city = utd.get_city_dfs(city)
@@ -48,7 +48,7 @@ def plot_city_detectors(city: str, dark=False, links=False):
     return fig
 
 @cache_plot
-def plot_flow_distibutions(n_cols=3):
+def plot_flow_distibutions(n_cols=3, overwrite=False):
     cities = utd.cities
     n_cities = len(cities)
     n_rows = n_cities // n_cols + n_cities % n_cols

@@ -13,13 +13,18 @@ def cache_plot(func):
         func_args = func_code.co_varnames[:func_code.co_argcount]
         name_args = dict(zip(func_args, (*args, *func_defaults)))
         name_args.update(kwargs)
+        if 'overwrite' not in name_args:
+            overwrite = False
+        else:
+            overwrite = name_args.pop('overwrite')
         s = func_name + "_" + str(name_args)
         s = s.encode('utf-8')
         hash_obj = hashlib.sha256()
         hash_obj.update(s)
         hash_val = hash_obj.hexdigest()
         save_p = os.path.join(data_dir, ".cache", f'{hash_val}.pkl')
-        if os.path.isfile(save_p):
+        # if object is cached and not overriding then:
+        if os.path.isfile(save_p) and not overwrite:
             with open(save_p, 'rb') as f:
                 res = pickle.load(f)
         else:
