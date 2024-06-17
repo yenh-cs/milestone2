@@ -34,6 +34,7 @@ class UTDCityDataset(Dataset):
 
         dfs = utd.get_city_dfs(city, True, False, False)
         self.df_traffic = dfs.traffic_df
+        self.df_traffic.flow = self.df_traffic.flow / self.df_traffic.flow.max()
 
         self.detid_data = self.df_traffic.value_counts('detid').reset_index()
         self.detid_data['start_idx'] = 0
