@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import statsmodels.api as sm
 from statsmodels.tsa.ar_model import AutoReg
 
+from Scripts.misc import mape
 from Scripts.constants import utd
 from Scripts.datasets import UTDCityDataset
 
@@ -29,5 +30,6 @@ for i in np.random.randint(0, len(dset), 10):
     plt.plot(np.arange(len(x)), x, "k")
     plt.plot(np.arange(len(x), len(x) + 50), y, "b--")
     plt.plot(np.arange(len(x), len(x) + 50), y_preds, "r--")
+    plt.title(f'{mape(y, y_preds)}')
     plt.show()
 
