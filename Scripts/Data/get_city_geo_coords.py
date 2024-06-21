@@ -3,8 +3,10 @@ import json
 from tqdm import tqdm
 from geopy.geocoders import Nominatim
 
+geolocator = Nominatim(user_agent="city_coordinates", timeout=100000)
+
+
 def get_city_coords(city_name):
-    geolocator = Nominatim(user_agent="city_coordinates")
     location = geolocator.geocode(city_name)
     if location is not None:
         return location.latitude, location.longitude
@@ -16,7 +18,6 @@ def save_city_coords_to_utd(utd_path):
         if city[0] == ".":
             continue
         data_p = os.path.join(utd_path, city, "metadata.json")
-        lat, lon = get_city_coords(city)
 
         if not os.path.exists(data_p):
             data = {}
@@ -25,9 +26,10 @@ def save_city_coords_to_utd(utd_path):
                 data = json.load(f)
 
         if "latitude" in data and "longitude" in data:
-            if data['latitude'] == lat and data['longitude'] == lon:
-                continue
+            continue
         else:
+            lat, lon = get_city_coords(city)
+
             with open(data_p, 'w') as f:
                 data['latitude'] = lat
                 data['longitude'] = lon
