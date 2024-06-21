@@ -1,10 +1,17 @@
 from geopy.geocoders import Nominatim
+import numpy as np
 
 def get_city_coords(city_name):
     geolocator = Nominatim(user_agent="city_coordinates")
     location = geolocator.geocode(city_name)
     if location is not None:
         return location.latitude, location.longitude
+
+
+def mape(y_true, y_pred):
+    """ Mean Absolute Percentage Error """
+    mape = np.mean(np.abs((y_true - y_pred) / y_true)) * 100
+    return mape
 
 
 if __name__ == "__main__":
