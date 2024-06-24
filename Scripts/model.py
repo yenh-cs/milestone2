@@ -13,6 +13,7 @@ class LSTM(nn.Module):
         self.fc = nn.Linear(hidden_size, predict_len)
 
     def forward(self, x):
+        # input shape: (num of seqs, time steps per seq, num of features)
         out, _ = self.lstm(x)
         out = self.fc(out[:, -1, :])
         return out[:, :, None]
