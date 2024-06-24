@@ -43,11 +43,17 @@ def save_combined_data_by_city_utd_city(utd_path):
         df_link_city = pd.read_csv(link_path)
         df_traffic_city = pd.read_csv(traffic_path)
 
-        # Merging detector and traffic datasets on 'detid'
-        df_det_tra = pd.merge(df_detector_city, df_traffic_city, on='detid', how='outer')
+        # Rename 'city' in df_traffic to ''citycode' to match with df_detectors
+        df_traffic_city.rename(columns={'city': 'citycode'}, inplace=True)
 
-        # Merging det_tra_df and link datasets on # Merging merged_df with df_link_city on common columns: long, lat, and linkid
-        df_combined_data_city = pd.merge(df_det_tra, df_link_city, on=['long', 'lat', 'linkid', 'citycode'], how='outer')
+        # Merging detector and traffic datasets on 'detid'
+        # Using 'inner' strategy to keep only those traffic measurements that have corresponding detector
+        # location information to ensure we have the necessary spatial context for each traffic record
+        df_det_tra = pd.merge(df_detector_city, df_traffic_city, on=['detid', 'citycode'], how='inner')
+
+        # Merging det_tra_df and link datasets on # Merging merged_df with df_link_city on common columns: linkid and citycode
+        # Using 'left' strategy to retain all traffic data while adding spatial context where available
+        df_combined_data_city = pd.merge(df_det_tra, df_link_city, on=['linkid', 'citycode'], how='left')
 
         df_combined_data_city = clean_data_by_city(df_combined_data_city)
 
