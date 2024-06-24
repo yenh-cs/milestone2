@@ -42,7 +42,11 @@ class UTDCityDataset(Dataset):
         print(self.detid_data.head().to_string())
 
     def __len__(self):
-        return self.detid_data['seq_cumsum'].iloc[-1]
+        try:
+            return self.detid_data['seq_cumsum'].iloc[-1]
+        except IndexError:
+            return 0
+        # return self.detid_data['seq_cumsum'].iloc[-1]
 
     def __getitem__(self, item):
         detid_idx, seq_idx = self.get_detid_seq_idx(self.detid_data.seq_cumsum, item)
