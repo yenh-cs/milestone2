@@ -46,6 +46,23 @@ def preprocess_data(df):
     # print(df.columns)
     return df
 
+def pca_biplot(score, coeff, labels=None):
+    xs = score[:, 0]
+    ys = score[:, 1]
+    n = coeff.shape[0]
+    plt.scatter(xs, ys)
+
+    for i in range(n):
+        plt.arrow(0, 0, coeff[i, 0], coeff[i, 1], color='r', alpha=0.5)
+        if labels is None:
+            plt.text(coeff[i, 0] * 1.15, coeff[i, 1] * 1.15, "Var" + str(i + 1), color='g', ha='center', va='center')
+        else:
+            plt.text(coeff[i, 0] * 1.15, coeff[i, 1] * 1.15, labels[i], color='g', ha='center', va='center')
+
+    plt.xlabel("Principal Component 1")
+    plt.ylabel("Principal Component 2")
+    plt.grid()
+
 def PCA_analysis(df):
 
     # print(df.dtypes)
@@ -63,28 +80,33 @@ def PCA_analysis(df):
     scaled_features = scaler.fit_transform(df)
 
     # Perform PCA
-    pca = PCA(n_components=5)  # Number of components can be adjusted
+    pca = PCA(n_components=2)  # Number of components can be adjusted
     principal_components = pca.fit_transform(scaled_features)
 
     # Create a DataFrame with the principal components
-    pca_df = pd.DataFrame(data=principal_components, columns=['PC1', 'PC2', 'PC3', 'PC4', 'PC5'])
+    pca_df = pd.DataFrame(data=principal_components, columns=['PC1', 'PC2'])
 
     # Display the results
     print("Explained variance ratio:", pca.explained_variance_ratio_)
     # print("\nDataFrame with Principal Components:")
     # print(pca_df)
 
-    return pca_df
+    # Create the biplot
+    plt.figure(figsize=(10, 7))
+    pca_biplot(principal_components, np.transpose(pca.components_), labels=features)
+    plt.show()
 
-def plot_pca_results(df):
-    # print("plot pca test 2 pass")
-    fig = px.scatter(df, x='PC1', y='PC2')
-    # print("plot pca test 3 pass")
-    fig.update_layout(title='PCA of Traffic Data',
-                      xaxis_title='Principal Component 1',
-                      yaxis_title='Principal Component 2')
-    # print("plot pca test 4 pass")
-    fig.show()
+    return principal_components, pca_df
+
+# def plot_pca_results(df):
+#     # print("plot pca test 2 pass")
+#     fig = px.scatter(df, x='PC1', y='PC2')
+#     # print("plot pca test 3 pass")
+#     fig.update_layout(title='PCA of Traffic Data',
+#                       xaxis_title='Principal Component 1',
+#                       yaxis_title='Principal Component 2')
+#     # print("plot pca test 4 pass")
+#     fig.show()
 
 if __name__ == "__main__":
     import os
@@ -93,6 +115,7 @@ if __name__ == "__main__":
     from tqdm import tqdm
     from sklearn.preprocessing import StandardScaler
     from sklearn.decomposition import PCA
+    import matplotlib.pyplot as plt
 
     # detectors_path = './Data/detectors.csv'
     # links_path = './Data/links.csv'
@@ -119,11 +142,10 @@ if __name__ == "__main__":
 
         combined_df = load_combined_data_city(combined_data_path)
 
-        # print(len(combined_df))
         pca_df = PCA_analysis(combined_df)
 
         # combined_df = pd.concat([combined_df, pca_df], axis=1)
         # print("pca test 13 pass")
 
         # Visualize the PCA results
-        plot_pca_results(pca_df)
+        # plot_pca_results(pca_df)
