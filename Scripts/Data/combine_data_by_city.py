@@ -17,6 +17,15 @@ from tqdm import tqdm
         None
 """
 
+def clean_data_by_city(df):
+    # covert day field to date type
+    df['day'] = pd.to_datetime(df['day'], errors='coerce')
+
+    # # fill all NaNs to zero
+    # df = df.fillna(0)
+
+    return df
+
 def save_combined_data_by_city_utd_city(utd_path):
     cities = os.listdir(utd_path)
 
@@ -38,7 +47,9 @@ def save_combined_data_by_city_utd_city(utd_path):
         df_det_tra = pd.merge(df_detector_city, df_traffic_city, on='detid', how='outer')
 
         # Merging det_tra_df and link datasets on # Merging merged_df with df_link_city on common columns: long, lat, and linkid
-        df_combined_data_city = pd.merge(df_det_tra, df_link_city, on=['long', 'lat', 'linkid'], how='outer')
+        df_combined_data_city = pd.merge(df_det_tra, df_link_city, on=['long', 'lat', 'linkid', 'citycode'], how='outer')
+
+        df_combined_data_city = clean_data_by_city(df_combined_data_city)
 
         combined_data_p = os.path.join(city_path, "combined_data_{city}.csv".format(city=city))
         df_combined_data_city.to_csv(combined_data_p)
