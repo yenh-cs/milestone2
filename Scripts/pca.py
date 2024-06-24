@@ -38,9 +38,7 @@ def preprocess_data(df):
     df = df.fillna(0)
 
     df['limit'] = df['limit'].apply(semicolon_process_limit)
-    print('semicolon test pass')
     df['limit'] = df['limit'].apply(pipes_process_limit)
-    print('pipes test pass')
 
     df = df.replace([np.inf, -np.inf], np.nan)
     df = df.fillna(0)
@@ -73,19 +71,19 @@ def PCA_analysis(df):
 
     # Display the results
     print("Explained variance ratio:", pca.explained_variance_ratio_)
-    print("\nDataFrame with Principal Components:")
-    # print(df)
+    # print("\nDataFrame with Principal Components:")
+    # print(pca_df)
 
     return pca_df
 
 def plot_pca_results(df):
-    print("plot pca test 2 pass")
-    fig = px.scatter(df, x='PC1', y='PC2', color='city', hover_data=['detid', 'flow', 'lat', 'long'])
-    print("plot pca test 3 pass")
-    fig.update_layout(title='PCA of Traffic Data Across Cities',
+    # print("plot pca test 2 pass")
+    fig = px.scatter(df, x='PC1', y='PC2')
+    # print("plot pca test 3 pass")
+    fig.update_layout(title='PCA of Traffic Data',
                       xaxis_title='Principal Component 1',
                       yaxis_title='Principal Component 2')
-    print("plot pca test 4 pass")
+    # print("plot pca test 4 pass")
     fig.show()
 
 if __name__ == "__main__":
@@ -126,11 +124,6 @@ if __name__ == "__main__":
 
         # combined_df = pd.concat([combined_df, pca_df], axis=1)
         # print("pca test 13 pass")
-        #
-        # # Explained variance
-        # explained_variance = pca.explained_variance_ratio_
-        # print("pca test 14 pass")
-        # print("Explained variance by each principal component: ", explained_variance)
-        #
-        # # Visualize the PCA results
-        # plot_pca_results(combined_df)
+
+        # Visualize the PCA results
+        plot_pca_results(pca_df)
