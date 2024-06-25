@@ -23,7 +23,7 @@ def train(
         lr: float = 1e-3,
         loss=nn.MSELoss
 ):
-    model = LSTM(hidden_size, predict_len)
+    model = LSTM(hidden_size, predict_len, num_layers=3)
     model.to(device)
     optimizer = Adam(model.parameters(), lr=lr)
     loss_fn = loss()
@@ -31,7 +31,7 @@ def train(
     train_losses = []
     val_losses = []
 
-    save_dir = os.path.join(data_dir, "Models")
+    save_dir = os.path.join(data_dir, "Models/ThirdTrain")
     os.makedirs(save_dir, exist_ok=True)
 
     for epoch in range(epochs):
@@ -79,10 +79,12 @@ if __name__ == "__main__":
     batch_size = 1000
 
     # TODO predict_len so dataset and model have same
-    utd_dset = UTDCityDataset('paris', 100, 50)
+    seq_len = 200
+    predict_len = 100
+    utd_dset = UTDCityDataset('paris', seq_len, predict_len=predict_len)
     train_dset, val_dset, test_dset = train_val_test_split(utd_dset, 0.8, 0.1, 0.1)
     train_loader = DataLoader(train_dset, batch_size, shuffle=True, num_workers=5)
     val_loader = DataLoader(val_dset, batch_size, shuffle=False, num_workers=3)
 
-    train(30, train_loader=train_loader, val_loader=val_loader, device=0)
+    train(30, train_loader=train_loader, val_loader=val_loader, device=0, predict_len=predict_len)
 
