@@ -90,15 +90,19 @@ if __name__ == "__main__":
 
     cities = os.listdir(utd_path)
 
-    for city in tqdm(cities):
-        if city[0] == ".":
-            continue
+    # for city in tqdm(cities):
+    #     if city[0] == ".":
+    #         continue
+    #
+    #     #city folder path within UTD
+    #     city_path = os.path.join(utd_path, city)
+    #     # combined_data_path = os.path.join(city_path, "combined_data_{city}.csv".format(city=city))
+    #
+    #     # combined_df = load_combined_data_city(city_path)
+    #     #
+    #     clusters = cluster_by_city(city_path)
+    #     plot_the_clusters(clusters)
 
-        #city folder path within UTD
-        city_path = os.path.join(utd_path, city)
-        # combined_data_path = os.path.join(city_path, "combined_data_{city}.csv".format(city=city))
-
-        # combined_df = load_combined_data_city(city_path)
-        #
-        clusters = cluster_by_city(city_path)
-        plot_the_clusters(clusters)
+    city_path = os.path.join(utd_path, 'paris')
+    clusters = cluster_by_city(city_path)
+    plot_the_clusters(clusters)
