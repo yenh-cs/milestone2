@@ -1,100 +1,110 @@
+import plotly.express as px
+import os
+import numpy as np
 import pandas as pd
+from matplotlib import pyplot as plt
+from tqdm import tqdm
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
-import plotly.express as px
+import sklearn.cross_decomposition
+from scipy.stats import zscore
+import seaborn as sns
+from sklearn.cluster import KMeans
+import sys
+import prince
 
-def load_combined_data_city(combined_data_path):
-    df_combined_data = pd.read_csv(combined_data_path)
-    return df_combined_data
 
-def semicolon_process_limit(limit):
-    if isinstance(limit, str) and ';' in limit:
-        limits = limit.split(';')
-        limits = [float(l) for l in limits]
-        return sum(limits) / len(limits)
-    elif isinstance(limit, (int, float)):
-        return limit
-    else:
-        return float(limit)  # Handle case where it's a single string number
+def famd(file_path):
+    traffic_p = file_path + '/traffic.csv'
+    detectors_p = file_path + '/detector.csv'
 
-def pipes_process_limit(limit):
-    try:
-        if isinstance(limit, str) and '|' in limit:
-            limits = limit.split('|')
-            limits = [float(l) for l in limits]
-            return sum(limits) / len(limits)
-        elif isinstance(limit, (int, float)):
-            return limit
-        else:
-            return float(limit)  # Handle case where it's a single string number
-    except (ValueError, OverflowError) as e:
-        print(f"Error processing limit value {limit}: {e}")
-        return np.nan
+    df_traffic = pd.read_csv(traffic_p).drop(columns=['speed', 'error']).dropna()
+    df_detector = pd.read_csv(detectors_p)
+    df_detector['city'] = df_detector.citycode
+    df_detector = df_detector.drop(columns=['citycode'])
 
-def preprocess_data(df):
-    # Fill missing values for other features if necessary
-    # df['day'] = pd.to_datetime(df['day'], errors='coerce')
-    df = df.replace([np.inf, -np.inf], np.nan)
-    df = df.fillna(0)
+    df = df_traffic.merge(df_detector, on=['city', "detid"], how='outer')
+    df = df.drop(columns=["detid", "road", "linkid"]).set_index('city')
+    df = df.replace([np.inf, -np.inf], np.nan).dropna()
+    famd = prince.FAMD(5)
 
-    df['limit'] = df['limit'].apply(semicolon_process_limit)
-    print('semicolon test pass')
-    df['limit'] = df['limit'].apply(pipes_process_limit)
-    print('pipes test pass')
+    famd.fit(df)
+    plot = famd.plot(
+        df,
+        x_component=0,
+        y_component=1,
+        color_rows_by='city:N'
+    )
+    plot.save("../Data/chart.html")
+    print(famd.eigenvalues_summary)
 
-    df = df.replace([np.inf, -np.inf], np.nan)
-    df = df.fillna(0)
 
-    # print(df.columns)
-    return df
+def apply_pca(file_path):
+    traffic_p = file_path + '/traffic.csv'
+    detectors_p = file_path + '/detector.csv'
 
-def PCA_analysis(df):
+    # Select features for PCA
+    df_traffic = pd.read_csv(traffic_p).drop(columns=['speed', 'error']).dropna()
+    df_detector = pd.read_csv(detectors_p).dropna()[['detid', 'length', 'pos']]
 
-    # print(df.dtypes)
-    # # Select features for PCA: Exclude non-numeric and identifier columns
-    features = ['length', 'pos', 'limit', 'lanes', 'long', 'lat', 'interval', 'flow', 'occ', 'error', 'speed', 'order', 'piece', 'group']
+    df_traffic.occ = df_traffic.occ.replace(np.inf, 1E3)
+    df = df_traffic.merge(df_detector, on='detid', how='outer').dropna()
+    x = df[['flow', 'occ', 'length', 'pos']]
+    y = df.city
 
-    for feature in features:
-        df[feature] = pd.to_numeric(df[feature], errors='coerce')
+    # Normalize the features
+    scaler = StandardScaler()
+    x_normalized = scaler.fit_transform(x)
 
-    df = df[features]
-    df = preprocess_data(df)
-
-    # Before applying PCA, each feature should be centered (zero mean) and with unit variance
-    X_normalized = StandardScaler().fit_transform(df)
-
-    # Perform PCA
-    pca = PCA(n_components=2).fit(X_normalized)
-    X_pca = pca.transform(X_normalized)
+    # Apply PCA
+    pca = PCA(n_components=2)
+    x_pca = pca.fit_transform(x_normalized)
 
     # Create a DataFrame with the principal components
-    pca_df = pd.DataFrame(data=X_pca, columns=['PC1', 'PC2'])
+    # pca_df = pd.DataFrame(data=x_pca, columns=['PC1', 'PC2'])
+    # pca_df['city'] = y
 
-    # Display the results
-    print("Explained variance ratio:", pca.explained_variance_ratio)
-    print("\nDataFrame with Principal Components:")
-    # print(df)
+    return pca, x_pca
 
-    return pca_df
 
-def plot_pca_results(df):
-    print("plot pca test 2 pass")
-    fig = px.scatter(df, x='PC1', y='PC2', color='city', hover_data=['detid', 'flow', 'lat', 'long'])
-    print("plot pca test 3 pass")
-    fig.update_layout(title='PCA of Traffic Data Across Cities',
-                      xaxis_title='Principal Component 1',
-                      yaxis_title='Principal Component 2')
-    print("plot pca test 4 pass")
-    fig.show()
+def biplot_pca(pca, x_pca):
+    """
+        Adapted from https://stackoverflow.com/questions/39216897/plot-pca-loadings-and-loading-in-biplot-in-sklearn-like-rs-autoplot
+        Args:
+            score:
+            coeff:
+            labels:
+
+        Returns:
+
+    """
+    score = x_pca
+    coeff = np.transpose(pca.components_)
+    labels =  ['flow', 'occ', 'length', 'pos']
+
+    xs = score[:, 0]
+    ys = score[:, 1]
+    n = coeff.shape[0]
+    scalex = 1.0 / (xs.max() - xs.min())
+    scaley = 1.0 / (ys.max() - ys.min())
+    sns.scatterplot(x=xs * scalex, y=ys * scaley, hue=ys)
+    # plt.scatter(xs * scalex,ys * scaley, c = y)
+    for i in range(n):
+        plt.arrow(0, 0, coeff[i, 0], coeff[i, 1], color='r', alpha=0.5)
+        if labels is None:
+            plt.text(coeff[i, 0] * 1.15, coeff[i, 1] * 1.15, "Var" + str(i + 1), color='g', ha='center', va='center')
+        else:
+            plt.text(coeff[i, 0] * 1.15, coeff[i, 1] * 1.15, labels[i], color='g', ha='center', va='center')
+    plt.xlim(-1, 1)
+    plt.ylim(-1, 1)
+    plt.xlabel("PC{}".format(1))
+    plt.ylabel("PC{}".format(2))
+    plt.grid()
+    plt.legend().set_visible(False)
+    plt.show()
+
 
 if __name__ == "__main__":
-    import os
-    import numpy as np
-    import pandas as pd
-    from tqdm import tqdm
-    from sklearn.preprocessing import StandardScaler
-    from sklearn.decomposition import PCA
-
     # detectors_path = './Data/detectors.csv'
     # links_path = './Data/links.csv'
     # traffic_path = './Data/traffic.csv'
@@ -108,28 +118,37 @@ if __name__ == "__main__":
 
     cities = os.listdir(utd_path)
 
-    for city in tqdm(cities):
-        if city[0] == ".":
-            continue
+    # This code for looping over all cities but for the performance and demonstration purpose, we will run on 1 city only
+    # for city in tqdm(cities):
+    #     if city[0] == ".":
+    #         continue
+    #
+    #     #city folder path within UTD
+    #     city_path = os.path.join(utd_path, city)
+    #     combined_data_path = os.path.join(city_path, "combined_data_{city}.csv".format(city=city))
+    #
+    #     combined_df = load_combined_data_city(combined_data_path)
+    #
+    #     # print(len(combined_df))
+    #     pca_df = pca(combined_df)
+    #
+    #     # combined_df = pd.concat([combined_df, pca_df], axis=1)
+    #     # print("pca test 13 pass")
+    #     #
+    #     # # Explained variance
+    #     # explained_variance = pca.explained_variance_ratio_
+    #     # print("pca test 14 pass")
+    #     # print("Explained variance by each principal component: ", explained_variance)
+    #     #
+    #     # # Visualize the PCA results
+    #     # plot_pca_results(combined_df)
 
-        print(city)
+    city_path = os.path.join(utd_path, 'paris')
+    pca, x_pca = apply_pca(city_path)
+    explained_variance = pca.explained_variance_ratio_
+    print("Explained variance by each principal component: ", explained_variance)
 
-        #city folder path within UTD
-        city_path = os.path.join(utd_path, city)
-        combined_data_path = os.path.join(city_path, "combined_data_{city}.csv".format(city=city))
+    # Visualize the PCA results
+    biplot_pca(pca, x_pca)
 
-        combined_df = load_combined_data_city(combined_data_path)
 
-        # print(len(combined_df))
-        pca_df = PCA_analysis(combined_df)
-
-        # combined_df = pd.concat([combined_df, pca_df], axis=1)
-        # print("pca test 13 pass")
-        #
-        # # Explained variance
-        # explained_variance = pca.explained_variance_ratio_
-        # print("pca test 14 pass")
-        # print("Explained variance by each principal component: ", explained_variance)
-        #
-        # # Visualize the PCA results
-        # plot_pca_results(combined_df)
