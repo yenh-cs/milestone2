@@ -58,7 +58,7 @@ def save_combined_data_by_city_utd_city(utd_path):
         df_combined_data_city = clean_data_by_city(df_combined_data_city)
 
         combined_data_p = os.path.join(city_path, "combined_data_{city}.csv".format(city=city))
-        df_combined_data_city.to_csv(combined_data_p)
+        df_combined_data_city.to_csv(combined_data_p, index=False)
 
 
 if __name__ == "__main__":
