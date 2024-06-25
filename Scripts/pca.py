@@ -60,19 +60,18 @@ def PCA_analysis(df):
     df = df[features]
     df = preprocess_data(df)
 
-    # Standardize the features
-    scaler = StandardScaler()
-    scaled_features = scaler.fit_transform(df)
+    # Before applying PCA, each feature should be centered (zero mean) and with unit variance
+    X_normalized = StandardScaler().fit_transform(df)
 
     # Perform PCA
-    pca = PCA(n_components=5)  # Number of components can be adjusted
-    principal_components = pca.fit_transform(scaled_features)
+    pca = PCA(n_components=2).fit(X_normalized)
+    X_pca = pca.transform(X_normalized)
 
     # Create a DataFrame with the principal components
-    pca_df = pd.DataFrame(data=principal_components, columns=['PC1', 'PC2', 'PC3', 'PC4', 'PC5'])
+    pca_df = pd.DataFrame(data=X_pca, columns=['PC1', 'PC2'])
 
     # Display the results
-    print("Explained variance ratio:", pca.explained_variance_ratio_)
+    print("Explained variance ratio:", pca.explained_variance_ratio)
     print("\nDataFrame with Principal Components:")
     # print(df)
 
