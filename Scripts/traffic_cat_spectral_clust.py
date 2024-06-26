@@ -24,7 +24,7 @@ def spect_clus(city_data, features):
 
 def spect_cluster_visualization(city_data, num_clusters):
     # Define colors for clusters
-    colors = ['green', 'yellow', 'red']
+    colors = {'High': 'red', 'Mid': 'yellow', 'Low': 'green'}
 
     # Sort clusters by average flow to assign colors
     cluster_avg_flow = city_data.groupby('spectral_cluster')['flow'].mean().sort_values()
