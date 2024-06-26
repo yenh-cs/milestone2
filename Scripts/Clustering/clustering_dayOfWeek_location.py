@@ -26,7 +26,7 @@ def cluster_by_city(city_path):
     # Merge traffic and detector datasets on 'detid' and 'citycode'
     df_merged = pd.merge(df_traffic, df_detectors, on=['detid', 'citycode'], how='inner')
 
-    # Select relevant columns for clustering
+    # Select relevant columns for Clustering
     df_traffic_cluster = df_merged[
         ['day_of_week', 'interval', 'flow', 'occ', 'limit', 'lanes', 'long', 'lat']]
 
@@ -37,7 +37,7 @@ def cluster_by_city(city_path):
     df_traffic_cluster['interval_hours'] = df_traffic_cluster['interval'] / 3600
     df_traffic_cluster.drop(columns=['interval'], inplace=True)
 
-    # Extract relevant features for clustering
+    # Extract relevant features for Clustering
     features = ['day_of_week', 'interval_hours', 'flow', 'occ', 'limit', 'lanes', 'long', 'lat']
     X = df_traffic_cluster[features]
 
@@ -48,7 +48,7 @@ def cluster_by_city(city_path):
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    # Apply KMeans clustering
+    # Apply KMeans Clustering
     n_clusters = 3  # Define the number of clusters (high, medium, low traffic)
     kmeans = KMeans(n_clusters=n_clusters, random_state=42)
     kmeans.fit(X_scaled)
@@ -85,7 +85,7 @@ def plot_the_clusters(clusters):
 if __name__ == "__main__":
     script_dir = os.path.dirname(os.path.abspath(__file__))
     # Traverse up to the root directory (milestone2 in this case)
-    root_dir = os.path.abspath(os.path.join(script_dir, '../'))
+    root_dir = os.path.abspath(os.path.join(script_dir, '../../'))
     utd_path = os.path.join(root_dir, "Data/UTD")
 
     cities = os.listdir(utd_path)
