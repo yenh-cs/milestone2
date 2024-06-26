@@ -113,7 +113,7 @@ if __name__ == "__main__":
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
     # Traverse up to the root directory (milestone2 in this case)
-    root_dir = os.path.abspath(os.path.join(script_dir, '../'))
+    root_dir = os.path.abspath(os.path.join(script_dir, '../../'))
     utd_path = os.path.join(root_dir, "Data/UTD")
 
     cities = os.listdir(utd_path)
