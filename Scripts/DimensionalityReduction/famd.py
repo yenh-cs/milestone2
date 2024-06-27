@@ -21,7 +21,7 @@ def load_and_preprocess(file_path):
 
 def apply_famd(df):
     # Identify categorical and numerical columns
-    categorical_cols = ['detid', 'city']
+    categorical_cols = ['city']
     numerical_cols = ['flow', 'occ', 'length', 'pos']
 
     famd = prince.FAMD(n_components=2, random_state=42)

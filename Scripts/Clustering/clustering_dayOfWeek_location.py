@@ -1,10 +1,9 @@
 import pandas as pd
-import numpy as np
 from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
 import seaborn as sns
-from datetime import datetime
 import os
 from tqdm import tqdm
 
@@ -41,17 +40,18 @@ def cluster_by_city(city_path):
     features = ['day_of_week', 'interval_hours', 'flow', 'occ', 'limit', 'lanes', 'long', 'lat']
     X = df_traffic_cluster[features]
 
-    # Convert categorical features to numerical
-    # X = pd.get_dummies(X, columns=['road', 'fclass'], drop_first=True)
-
     # Normalize the features
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
+    # Apply PCA
+    pca = PCA(n_components=2)
+    X_pca = pca.fit_transform(X_scaled)
+
     # Apply KMeans Clustering
     n_clusters = 3  # Define the number of clusters (high, medium, low traffic)
     kmeans = KMeans(n_clusters=n_clusters, random_state=42)
-    kmeans.fit(X_scaled)
+    kmeans.fit(X_pca)
 
     # Add cluster labels to the original dataframe
     df_traffic_cluster['cluster'] = kmeans.labels_
@@ -59,25 +59,34 @@ def cluster_by_city(city_path):
     # Analyze the clusters
     cluster_summary = df_traffic_cluster.groupby('cluster').mean()
 
-    return df_traffic_cluster
+    return df_traffic_cluster, pca, X_pca
 
 
-def plot_the_clusters(clusters):
+def plot_the_clusters(clusters, city, pca, X_pca):
+    # Plot the clusters in PCA space
+    plt.figure(figsize=(10, 6))
+    sns.scatterplot(x=X_pca[:, 0], y=X_pca[:, 1], hue=clusters['cluster'], palette='viridis')
+    plt.title(f'PCA Clusters for {city}', fontweight='bold')
+    plt.xlabel('Principal Component 1', fontweight='bold')
+    plt.ylabel('Principal Component 2', fontweight='bold')
+    plt.legend(title='Cluster')
+    plt.show()
+
     # Plot the clusters
     plt.figure(figsize=(10, 6))
     sns.scatterplot(x='interval_hours', y='flow', hue='cluster', data=clusters, palette='viridis')
-    plt.title('Traffic Clusters')
-    plt.xlabel('Time of Day (hours)')
-    plt.ylabel('Traffic Flow (vehicles/hour)')
+    plt.title(f'Traffic Clusters for {city}', fontweight='bold')
+    plt.xlabel('Time of Day (hours)', fontweight='bold')
+    plt.ylabel('Traffic Flow (vehicles/hour)', fontweight='bold')
     plt.legend(title='Cluster')
     plt.show()
 
     # Additional analysis: distribution of clusters by day of the week
     plt.figure(figsize=(10, 6))
     sns.countplot(x='day_of_week', hue='cluster', data=clusters, palette='viridis')
-    plt.title('Cluster Distribution by Day of the Week')
-    plt.xlabel('Day of the Week')
-    plt.ylabel('Number of Records')
+    plt.title(f'Cluster Distribution by Day of the Week for {city}', fontweight='bold')
+    plt.xlabel('Day of the Week', fontweight='bold')
+    plt.ylabel('Number of Records', fontweight='bold')
     plt.legend(title='Cluster')
     plt.show()
 
@@ -103,6 +112,7 @@ if __name__ == "__main__":
     #     clusters = cluster_by_city(city_path)
     #     plot_the_clusters(clusters)
 
-    city_path = os.path.join(utd_path, 'paris')
-    clusters = cluster_by_city(city_path)
-    plot_the_clusters(clusters)
+    city = 'paris'
+    city_path = os.path.join(utd_path, city)
+    clusters, pca, X_pca = cluster_by_city(city_path)
+    plot_the_clusters(clusters, city, pca, X_pca)

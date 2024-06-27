@@ -28,12 +28,38 @@ def load_and_preprocess(file_path):
     return x_normalized, y
 
 
-def apply_tsne(x_normalized):
-    # Apply t-SNE
-    tsne = TSNE(n_components=2, perplexity=30, n_iter=300, random_state=42)
-    x_tsne = tsne.fit_transform(x_normalized)
+def manual_tsne_tuning(x_normalized):
+    param_grid = {
+        'perplexity': [5, 30, 50],
+        'n_iter': [300, 500, 1000],
+        'learning_rate': [10, 100, 200]
+    }
 
-    return x_tsne
+    best_tsne = None
+    best_score = float('inf')  # For t-SNE, we often use the Kullback-Leibler divergence as a "score"
+    best_params = {}
+
+    for perplexity in param_grid['perplexity']:
+        for n_iter in param_grid['n_iter']:
+            for learning_rate in param_grid['learning_rate']:
+                tsne = TSNE(n_components=2, perplexity=perplexity, n_iter=n_iter, learning_rate=learning_rate,
+                            random_state=42)
+                x_tsne = tsne.fit_transform(x_normalized)
+
+                # Use the KL divergence as a score, lower is better
+                score = tsne.kl_divergence_
+
+                if score < best_score:
+                    best_score = score
+                    best_tsne = tsne
+                    best_params = {
+                        'perplexity': perplexity,
+                        'n_iter': n_iter,
+                        'learning_rate': learning_rate
+                    }
+
+    print("Best parameters found: ", best_params)
+    return best_tsne, best_tsne.fit_transform(x_normalized)
 
 
 def plot_tsne_results(x_tsne, y):
@@ -41,9 +67,9 @@ def plot_tsne_results(x_tsne, y):
     tsne_df['city'] = y.values
     plt.figure(figsize=(10, 6))
     sns.scatterplot(x='Dim1', y='Dim2', hue='city', data=tsne_df, palette='viridis')
-    plt.title('t-SNE of Traffic Data')
-    plt.xlabel('Dimension 1')
-    plt.ylabel('Dimension 2')
+    plt.title('t-SNE of Traffic Data', fontweight='bold')
+    plt.xlabel('Dimension 1', fontweight='bold')
+    plt.ylabel('Dimension 2', fontweight='bold')
     plt.legend(title='City')
     plt.show()
 
@@ -59,6 +85,6 @@ if __name__ == "__main__":
     print(f"x_normalized shape: {x_normalized.shape}")
     print(f"y shape: {y.shape}")
 
-    x_tsne = apply_tsne(x_normalized)
+    best_tsne, x_tsne = manual_tsne_tuning(x_normalized)
 
     plot_tsne_results(x_tsne, y)

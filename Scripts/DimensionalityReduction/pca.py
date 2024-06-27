@@ -1,4 +1,3 @@
-import plotly.express as px
 import os
 import numpy as np
 import pandas as pd
@@ -6,40 +5,10 @@ from matplotlib import pyplot as plt
 from tqdm import tqdm
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
-import sklearn.cross_decomposition
-from scipy.stats import zscore
 import seaborn as sns
-from sklearn.cluster import KMeans
-import sys
-import prince
 
 
-def famd(file_path):
-    traffic_p = file_path + '/traffic.csv'
-    detectors_p = file_path + '/detector.csv'
-
-    df_traffic = pd.read_csv(traffic_p).drop(columns=['speed', 'error']).dropna()
-    df_detector = pd.read_csv(detectors_p)
-    df_detector['city'] = df_detector.citycode
-    df_detector = df_detector.drop(columns=['citycode'])
-
-    df = df_traffic.merge(df_detector, on=['city', "detid"], how='outer')
-    df = df.drop(columns=["detid", "road", "linkid"]).set_index('city')
-    df = df.replace([np.inf, -np.inf], np.nan).dropna()
-    famd = prince.FAMD(5)
-
-    famd.fit(df)
-    plot = famd.plot(
-        df,
-        x_component=0,
-        y_component=1,
-        color_rows_by='city:N'
-    )
-    plot.save("../Data/chart.html")
-    print(famd.eigenvalues_summary)
-
-
-def apply_pca(file_path):
+def apply_pca(file_path, n_components):
     traffic_p = file_path + '/traffic.csv'
     detectors_p = file_path + '/detector.csv'
 
@@ -57,17 +26,14 @@ def apply_pca(file_path):
     x_normalized = scaler.fit_transform(x)
 
     # Apply PCA
-    pca = PCA(n_components=2)
+    pca = PCA(n_components=n_components)
     x_pca = pca.fit_transform(x_normalized)
 
-    # Create a DataFrame with the principal components
-    # pca_df = pd.DataFrame(data=x_pca, columns=['PC1', 'PC2'])
-    # pca_df['city'] = y
 
     return pca, x_pca
 
 
-def biplot_pca(pca, x_pca):
+def biplot_pca(pca, x_pca, n_components):
     """
         Adapted from https://stackoverflow.com/questions/39216897/plot-pca-loadings-and-loading-in-biplot-in-sklearn-like-rs-autoplot
         Args:
@@ -82,26 +48,30 @@ def biplot_pca(pca, x_pca):
     coeff = np.transpose(pca.components_)
     labels =  ['flow', 'occ', 'length', 'pos']
 
-    xs = score[:, 0]
-    ys = score[:, 1]
-    n = coeff.shape[0]
-    scalex = 1.0 / (xs.max() - xs.min())
-    scaley = 1.0 / (ys.max() - ys.min())
-    sns.scatterplot(x=xs * scalex, y=ys * scaley, hue=ys)
-    # plt.scatter(xs * scalex,ys * scaley, c = y)
-    for i in range(n):
-        plt.arrow(0, 0, coeff[i, 0], coeff[i, 1], color='r', alpha=0.5)
-        if labels is None:
-            plt.text(coeff[i, 0] * 1.15, coeff[i, 1] * 1.15, "Var" + str(i + 1), color='g', ha='center', va='center')
-        else:
-            plt.text(coeff[i, 0] * 1.15, coeff[i, 1] * 1.15, labels[i], color='g', ha='center', va='center')
-    plt.xlim(-1, 1)
-    plt.ylim(-1, 1)
-    plt.xlabel("PC{}".format(1))
-    plt.ylabel("PC{}".format(2))
-    plt.grid()
-    plt.legend().set_visible(False)
-    plt.show()
+    if n_components == 2:
+        xs = score[:, 0]
+        ys = score[:, 1]
+        n = coeff.shape[0]
+        scalex = 1.0 / (xs.max() - xs.min())
+        scaley = 1.0 / (ys.max() - ys.min())
+        sns.scatterplot(x=xs * scalex, y=ys * scaley, hue=ys)
+        for i in range(n):
+            plt.arrow(0, 0, coeff[i, 0], coeff[i, 1], color='r', alpha=0.5)
+            if labels is None:
+                plt.text(coeff[i, 0] * 1.15, coeff[i, 1] * 1.15, "Var" + str(i + 1), color='g', ha='center',
+                         va='center')
+            else:
+                plt.text(coeff[i, 0] * 1.15, coeff[i, 1] * 1.15, labels[i], color='g', ha='center', va='center')
+        plt.xlim(-1, 1)
+        plt.ylim(-1, 1)
+        plt.xlabel("PC{}".format(1), fontweight='bold')
+        plt.ylabel("PC{}".format(2), fontweight='bold')
+        plt.grid()
+        plt.legend().set_visible(False)
+        plt.title(f'PCA Biplot of Traffic Data (n_components={n_components})', fontweight='bold')
+        plt.show()
+    else:
+        print(f"Cannot create biplot with n_components={n_components}")
 
 
 if __name__ == "__main__":
@@ -116,9 +86,8 @@ if __name__ == "__main__":
     root_dir = os.path.abspath(os.path.join(script_dir, '../../'))
     utd_path = os.path.join(root_dir, "Data/UTD")
 
-    cities = os.listdir(utd_path)
-
     # This code for looping over all cities but for the performance and demonstration purpose, we will run on 1 city only
+    # cities = os.listdir(utd_path)
     # for city in tqdm(cities):
     #     if city[0] == ".":
     #         continue
@@ -144,11 +113,12 @@ if __name__ == "__main__":
     #     # plot_pca_results(combined_df)
 
     city_path = os.path.join(utd_path, 'paris')
-    pca, x_pca = apply_pca(city_path)
-    explained_variance = pca.explained_variance_ratio_
-    print("Explained variance by each principal component: ", explained_variance)
-
-    # Visualize the PCA results
-    biplot_pca(pca, x_pca)
+    for n_components in [2, 3, 4]:
+        print(f"\nApplying PCA with n_components={n_components}")
+        pca, x_pca = apply_pca(city_path, n_components)
+        explained_variance = pca.explained_variance_ratio_
+        print(f"Explained variance by each principal component for n_components={n_components}: ", explained_variance)
+        # Visualize the PCA results
+        biplot_pca(pca, x_pca, n_components)
 
 
