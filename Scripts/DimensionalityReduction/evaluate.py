@@ -35,7 +35,7 @@ def apply_pca(x_normalized):
     return x_pca, explained_variance
 
 def apply_tsne(x_normalized):
-    tsne = TSNE(n_components=2, perplexity=30, n_iter=300, random_state=42)
+    tsne = TSNE(n_components=2, perplexity=50, n_iter=1000, learning_rate=200,  random_state=42)
     x_tsne = tsne.fit_transform(x_normalized)
 
     return x_tsne
