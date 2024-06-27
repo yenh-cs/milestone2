@@ -34,7 +34,7 @@ class UTDCityDataset(Dataset):
 
         dfs = utd.get_city_dfs(city, True, False, False)
         self.df_traffic = dfs.traffic_df
-        self.df_traffic.flow = self.df_traffic.flow / self.df_traffic.flow.max()
+        # self.df_traffic.flow = self.df_traffic.flow / self.df_traffic.flow.max()
 
         self.detid_data = self.df_traffic.value_counts('detid').reset_index()
         self.detid_data['start_idx'] = 0
@@ -59,11 +59,14 @@ class UTDCityDataset(Dataset):
         # dfs = utd.get_city_dfs(self.city, True, False, False)
         # traffic_df = dfs.traffic_df
         traffic_df = self.df_traffic.loc[self.df_traffic['detid'] == detid][['interval', "flow"]]
-        flow = traffic_df.sort_values('interval')['flow']
+        flow = traffic_df.flow
+        # TODO: interval is cyclic, messed up training
+        # flow = traffic_df.sort_values('interval')['flow']
         x = flow.iloc[seq_idx: seq_idx + self.seq_len].values.astype(np.float32)[:, None]
+        mx = x.max()
         y = flow.iloc[seq_idx + self.seq_len: seq_idx + self.seq_len + self.predict_len].values.astype(np.float32)
         y = np.pad(y, (0, self.predict_len - len(y)), constant_values=np.nan)[:, None]
-        return x, y
+        return x / mx, y / mx
 
     def __copy__(self):
         cls = self.__class__
