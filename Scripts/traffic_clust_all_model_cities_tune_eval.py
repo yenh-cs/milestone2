@@ -17,22 +17,34 @@ def data_prep(df, features):
 
     return scaled_features, city_data, city_labels
 
-# Function to plot Distortion scores
-def plot_distortion_scores(scores, title):
-    plt.figure()
-    plt.plot(scores[:, 0], scores[:, 1], 'bx-')
-    plt.xlabel('Number of clusters (k)')
-    plt.ylabel('Distortion Score')
-    plt.title(title)
-    plt.show()
-
-# Function to plot Silhouette scores
 def plot_silhouette_scores(scores, title):
     plt.figure()
-    plt.plot(scores[:, 0], scores[:, 1], 'bx-')
+    plt.plot(scores[:, 0], scores[:, 1], 'rx-')
     plt.xlabel('Number of clusters (k)')
     plt.ylabel('Silhouette Score')
     plt.title(title)
+    plt.show()
+
+def plot_silhouette_distortion_scores(silhouette_scores, distortion_scores, title):
+    fig, ax1 = plt.subplots(figsize=(10, 6))
+
+    # Plot silhouette scores with a red line
+    ax1.set_xlabel('Number of clusters (k)')
+    ax1.set_ylabel('Silhouette Score', color='red')
+    ax1.plot(silhouette_scores[:, 0], silhouette_scores[:, 1], 'rx-', label='Silhouette Score')
+    ax1.tick_params(axis='y', labelcolor='red')
+
+    # Create a second y-axis for distortion scores
+    ax2 = ax1.twinx()
+    ax2.set_ylabel('Distortion Score', color='green')
+    ax2.plot(distortion_scores[:, 0], distortion_scores[:, 1], 'gx-', label='Distortion Score')
+    ax2.tick_params(axis='y', labelcolor='green')
+
+    # Add title and legends
+    fig.suptitle(title)
+    ax1.legend(loc='upper left')
+    ax2.legend(loc='upper right')
+
     plt.show()
 
 # Function to evaluate clustering results
@@ -54,9 +66,7 @@ def tune_kmeans(X):
         distortion_scores.append((k, distortion))
         print("tuning complete for k=", k)
     silhouette_avg_scores = np.array(silhouette_avg_scores)
-    print(silhouette_avg_scores)
     distortion_scores = np.array(distortion_scores)
-    print(distortion_scores)
     best_k = silhouette_avg_scores[np.argmax(silhouette_avg_scores[:, 1])][0]
     return best_k, silhouette_avg_scores, distortion_scores
 
@@ -91,18 +101,6 @@ def tune_dbscan(X):
     silhouette_avg_scores = np.array(silhouette_avg_scores)
     best_eps = silhouette_avg_scores[np.argmax(silhouette_avg_scores[:, 1])][0]
     return best_eps, silhouette_avg_scores
-
-# Function to perform Spectral Clustering with hyperparameter tuning
-# def tune_spectral_clustering(X):
-#     silhouette_avg_scores = []
-#     for k in range(2, 11):
-#         spectral = SpectralClustering(n_clusters=k, random_state=42, affinity='nearest_neighbors')
-#         labels = spectral.fit_predict(X)
-#         silhouette_avg = silhouette_score(X, labels)
-#         silhouette_avg_scores.append((k, silhouette_avg))
-#     silhouette_avg_scores = np.array(silhouette_avg_scores)
-#     best_k = silhouette_avg_scores[np.argmax(silhouette_avg_scores[:, 1])][0]
-#     return best_k, silhouette_avg_scores
 
 # Function to plot clustering results
 def plot_clusters(df, labels, title):
@@ -167,8 +165,7 @@ if __name__ == "__main__":
     best_k, kmeans_silhouette_scores, kmeans_distortion_scores = tune_kmeans(X)
     kmeans = KMeans(n_clusters=int(best_k), random_state=42).fit(X)
     kmeans_labels = kmeans.labels_
-    plot_silhouette_scores(kmeans_silhouette_scores, "KMeans Silhouette Scores")
-    plot_distortion_scores(kmeans_distortion_scores, "KMeans Distortion Scores")
+    plot_silhouette_distortion_scores(kmeans_silhouette_scores, kmeans_distortion_scores, "KMeans Silhouette vs. Distortion Scores")
     city_data['category'] = ['Low' if lbl == 0 else 'Mid' if lbl == 1 else 'High' for lbl in kmeans_labels]
     plot_clusters(X, kmeans_labels, "KMeans Clustering Results")
 
@@ -188,14 +185,6 @@ if __name__ == "__main__":
     city_data['category'] = ['Low' if lbl == 0 else 'Mid' if lbl == 1 else 'High' for lbl in dbscan_labels]
     plot_clusters(city_data, dbscan_labels, "DBSCAN Clustering Results")
 
-    # # Spectral Clustering
-    # best_k, spectral_silhouette_scores = tune_spectral_clustering(X)
-    # spectral = SpectralClustering(n_clusters=int(best_k), random_state=42, affinity='nearest_neighbors').fit(X)
-    # spectral_labels = spectral.labels_
-    # plot_silhouette_scores(spectral_silhouette_scores, "Spectral Clustering Silhouette Scores")
-    # city_data['category'] = ['Low' if lbl == 0 else 'Mid' if lbl == 1 else 'High' for lbl in spectral_labels]
-    # plot_clusters(city_data, spectral_labels, "Spectral Clustering Results")
-
     # Performance Evaluation
     kmeans_silhouette, kmeans_db = evaluate_clustering(X, kmeans_labels)
     gmm_silhouette, gmm_db = evaluate_clustering(X, gmm_labels)
@@ -213,16 +202,17 @@ if __name__ == "__main__":
     silhouette_scores = [kmeans_silhouette, gmm_silhouette, dbscan_silhouette]
     db_scores = [kmeans_db, gmm_db, dbscan_db]
 
-    plt.figure()
-    plt.bar(methods, silhouette_scores)
-    plt.xlabel('Clustering Method')
-    plt.ylabel('Silhouette Score')
-    plt.title('Comparison of Silhouette Scores')
-    plt.show()
+    # Convert lists to numpy arrays for easier plotting
+    methods = np.array(methods)
+    silhouette_scores = np.array(silhouette_scores)
+    db_scores = np.array(db_scores)
 
-    plt.figure()
-    plt.bar(methods, db_scores)
+    # Create a line chart
+    plt.figure(figsize=(6, 6))
+    plt.plot(methods, silhouette_scores, 'g-', marker='o', label='Silhouette Score')
+    plt.plot(methods, db_scores, 'r-', marker='o', label='Davies-Bouldin Score')
     plt.xlabel('Clustering Method')
-    plt.ylabel('Davies-Bouldin Score')
-    plt.title('Comparison of Davies-Bouldin Scores')
+    plt.ylabel('Score')
+    plt.title('Comparison of Clustering Method Scores')
+    plt.legend()
     plt.show()
