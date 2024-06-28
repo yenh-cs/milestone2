@@ -1,7 +1,12 @@
 """ Random Plots made for paper """
+import os
+import pickle
+
+import torch
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from tqdm import tqdm
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
@@ -9,14 +14,8 @@ import matplotlib.patches as mpatches
 from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.graphics.tsaplots import plot_pacf, plot_acf
 from statsmodels.tsa.statespace.sarimax import SARIMAX
-from tqdm import tqdm
 
-import pickle
-import torch
-import matplotlib.patches as mpatches
 from Scripts.model import LSTM
-import os
-
 from Scripts.constants import utd
 from Scripts.eval_supervised import lstm_predict, knn_predict
 

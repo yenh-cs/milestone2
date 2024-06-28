@@ -1,5 +1,9 @@
+"""
+LSTM
+"""
 import torch
 import torch.nn as nn
+
 
 class LSTM(nn.Module):
     INPUT_SIZE = 1
@@ -17,11 +21,3 @@ class LSTM(nn.Module):
         out, _ = self.lstm(x)
         out = self.fc(out[:, -1, :])
         return out[:, :, None]
-
-
-if __name__ == "__main__":
-    model = LSTM(50, 10)
-    x = torch.zeros((1, 100, 1))
-    print(model)
-    y = model(x)
-    print(y.shape)
