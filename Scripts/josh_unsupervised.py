@@ -1,16 +1,13 @@
-import matplotlib.pyplot as plt
-import pandas as pd
-import sklearn.cross_decomposition
+""" Some unsupervised code """
 
-from Scripts.constants import utd
+import prince
+import numpy as np
+import seaborn as sns
+import pandas as pd
+import matplotlib.pyplot as plt
+
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
-import numpy as np
-from scipy.stats import zscore
-import seaborn as sns
-from sklearn.cluster import KMeans
-import sys
-import prince
 
 def famd():
 
@@ -93,5 +90,3 @@ def pca():
     biplot(x_new, np.transpose(pca.components_), ['flow', 'occ', 'length', 'posÍ'])
     plt.legend().set_visible(False)
     plt.show()
-
-famd()
