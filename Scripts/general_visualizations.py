@@ -8,8 +8,17 @@ import matplotlib.patches as mpatches
 
 from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.graphics.tsaplots import plot_pacf, plot_acf
+from statsmodels.tsa.statespace.sarimax import SARIMAX
+from tqdm import tqdm
+
+import pickle
+import torch
+import matplotlib.patches as mpatches
+from Scripts.model import LSTM
+import os
 
 from Scripts.constants import utd
+from Scripts.eval_supervised import lstm_predict, knn_predict
 
 
 def save_vis(f, p=None):
@@ -168,3 +177,66 @@ def grid_search_heat_map():
     plt.xlabel('Weights')
     plt.ylabel('N Neighbors-p')
     return f, ax
+
+
+def plot_sarimax_knn_lstm(save_dir: str, city="paris", pred_size=100, n=10):
+    """
+    Plots sarimax, lnn, and lstm series prediction
+    Args:
+        save_dir: where to save images
+        city: utd city
+        pred_size: number of prediction
+        n: number of detid to predict
+
+    Returns:
+        None, saves images and shows image
+    """
+    model_weights_p = "./../Models/NoShuffle/1719332148.pt"
+    model_state_d = torch.load(model_weights_p, map_location=torch.device('cpu'))
+    lstm = LSTM(50, pred_size, num_layers=3)
+    lstm.load_state_dict(model_state_d)
+
+    knn_p = "./../Models/knn.pkl"
+    with open(knn_p, 'rb') as f:
+        knn = pickle.load(f)
+
+    dfs = utd.get_city_dfs(city, True, False, False)
+    df_traffic = dfs.traffic_df
+    detids = df_traffic.detid.unique().tolist()
+
+    for detid in tqdm(np.random.choice(detids, replace=False, size=n), total=n):
+        tmp_df = df_traffic.loc[df_traffic.detid == detid]
+        flow = tmp_df.flow
+        train_flow = flow.iloc[:-pred_size]
+        test_flow = flow.iloc[-pred_size:]
+
+        sarima = SARIMAX(train_flow, order=(2, 0, 2))
+        fitted_model = sarima.fit()
+
+        y_pred = fitted_model.forecast(pred_size)
+        lstm_preds = lstm_predict(lstm, flow.iloc[:-pred_size].values)
+        knn_preds = knn_predict(knn, flow.iloc[:-pred_size].values)
+
+        x = flow.iloc[-2 * pred_size: -pred_size].values
+        y_true = test_flow.values
+
+        f, axes = plt.subplots(nrows=3, sharex="all", sharey='all', figsize=(10, 10))
+        for ax in axes:
+            ax.plot(np.arange(pred_size), x, 'k')
+            ax.plot(np.arange(pred_size, 2*pred_size, 1), y_true, 'k--')
+        axes[0].plot(np.arange(pred_size, 2*pred_size, 1), y_pred, 'r--')
+        axes[1].plot(np.arange(pred_size, 2*pred_size, 1), knn_preds, color='gold', linestyle='--')
+        axes[2].plot(np.arange(pred_size, 2*pred_size, 1), lstm_preds, 'g--')
+
+        black_patch = mpatches.Patch(color='black', label="Truth")
+        red_patch = mpatches.Patch(color='red', label="SARIMA")
+        yellow_patch = mpatches.Patch(color='gold', label='KNN')
+        green_patch = mpatches.Patch(color='green', label="LSTM")
+
+        axes[0].legend(handles=[black_patch, red_patch])
+        axes[1].legend(handles=[black_patch, yellow_patch])
+        axes[2].legend(handles=[black_patch, green_patch])
+        p = os.path.join(save_dir, f'{detid}.png')
+        f.tight_layout()
+        f.savefig(p)
+        plt.show()
