@@ -6,7 +6,6 @@ import os
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 import pickle
-import pandas as pd
 from typing import Dict, Callable, List
 
 from Scripts.model import LSTM
@@ -27,14 +26,17 @@ def lstm_predict(model, X):
     y_pred = y_pred * mx
     return y_pred
 
+
 def knn_predict(knn, X):
     X = X[None, -200:]
     y = knn.predict(X)
     return y.squeeze()
 
+
 def sarima_fit_transform(part_sarimax, X, pred_size):
     fitted_model = part_sarimax(X).fit()
     return fitted_model.forecast(pred_size)
+
 
 class ForecastProcessor:
     METRICS = {'mpe': mpe, "rmse": rmse, "mae": mae}
@@ -84,6 +86,7 @@ class ForecastProcessor:
 
         return out_d
 
+
 def parallel_forecast(args):
     forecaster, detid, pred_size = args
     return forecaster.forecast(detid, pred_size)
@@ -109,7 +112,7 @@ def main(save_p: str, pred_size=100):
 
     sarima = partial_sarimax((2, 0, 2), (1, 0, 1, 24))
 
-    dfs = utd.get_city_dfs('zurich', True, False, False)
+    dfs = utd.get_city_dfs('toronto', True, False, False)
     df_traffic = dfs.traffic_df
 
     forecaster = ForecastProcessor(df_traffic, lstm, knn, sarima)
@@ -121,7 +124,3 @@ def main(save_p: str, pred_size=100):
         results = pool.map(parallel_forecast, [(forecaster, detid, pred_size) for detid in detids])
 
     save_results(results, save_p, detid=detids)
-
-if __name__ == "__main__":
-    save_p = r'/Users/joshfisher/PycharmProjects/Milestone2/Data/zurich_results.csv'
-    main(save_p)

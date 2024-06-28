@@ -32,10 +32,13 @@ def famd():
         df,
         x_component=0,
         y_component=1,
-        color_rows_by='city:N'
+        show_column_markers=False,
+        color_rows_by='city:N',
     )
-    plot.save("../Data/chart.html")
+    print(type(plot))
+    plot.save("../Data/famd.html")
     print(famd.eigenvalues_summary)
+    print(famd.column_contributions_)
 
 def pca():
     traffic_p = r'../Data/traffic_group.csv'
