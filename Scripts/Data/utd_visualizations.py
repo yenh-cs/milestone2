@@ -70,7 +70,7 @@ def plot_flow_distibutions(n_cols=3, overwrite=False):
 
 
 if __name__ == "__main__":
-    # res = plot_flow_distibutions(n_cols=4)
-    # plt.show()
-    fig = plot_city_detectors('paris', dark=False, links=True)
-    fig.show()
+    res = plot_flow_distibutions(n_cols=4)
+    plt.show()
+    # fig = plot_city_detectors('paris', dark=False, links=True)
+    # fig.show()
